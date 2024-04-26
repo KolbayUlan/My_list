@@ -1,178 +1,206 @@
 import java.util.Iterator;
 
-class MyArrayList<T> implements MyList<T> {
-    private static final int DEFAULT_CAPACITY = 10;
-    private Object[] elements;
+public class MyArrayList<T extends Comparable<T>> implements MyList<T> {
+    // The internal array that stores the items in the list
+    private T[] arr;
+    // The number of items in the list
     private int size;
 
-    public MyArrayList() {
-        this.elements = new Object[DEFAULT_CAPACITY];
-        this.size = 0;
+    // Constructs a new, empty MyArrayList object
+    public MyArrayList(){
+        arr = (T[]) new Comparable[5];
+        size = 0;
     }
 
-    public MyArrayList(int initialCapacity) {
-        if (initialCapacity < 0) {
-            throw new IllegalArgumentException("illegal capacity " + initialCapacity);
+    // Increases the capacity of the internal array by doubling its size
+    private void increaseBuffer(){
+        T[] newArr = (T[]) new Comparable[arr.length * 2];
+        for (int i = 0; i < arr.length; i++){
+            newArr[i] = arr[i];
         }
-        this.elements = new Object[initialCapacity];
-        this.size = 0;
+        arr = newArr;
     }
 
+    // Throws an IndexOutOfBoundsException if the given index is out of bounds
+    private void checkIndex(int index) {
+        if(index < 0 || index >= size)
+            throw new IndexOutOfBoundsException("index not correct");
+    }
+
+    // Adds an item to the end of the list
     @Override
     public void add(T item) {
-        if (size == elements.length) {
-            resize();
-        }
-        elements[size++] = item;
+        add(size, item);
     }
 
+    // Sets the item at the given index to the specified value
     @Override
     public void set(int index, T item) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index " + index + ", size " + size);
-        }
-        elements[index] = item;
+        checkIndex(index);
+        arr[index] = item;
     }
 
+    // Inserts an item at the specified index
     @Override
     public void add(int index, T item) {
-        if (index < 0 || index > size) {
-            throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
+        if(size != index)
+            checkIndex(index);
+        if (size == arr.length){
+            increaseBuffer();
         }
-        if (size == elements.length) {
-            resize();
+        for (int i = size; i > index; i--){
+            arr[i] = arr[i - 1];
         }
-        System.arraycopy(elements, index, elements, index + 1, size - index);
-        elements[index] = item;
+        arr[index] = item;
         size++;
     }
 
+    // Adds an item to the beginning of the list
     @Override
     public void addFirst(T item) {
         add(0, item);
     }
 
+    // Adds an item to the end of the list
     @Override
     public void addLast(T item) {
         add(item);
     }
 
+    // Returns the item at the specified index
     @Override
     public T get(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
-        }
-        return (T) elements[index];
+        checkIndex(index);
+        return arr[index];
     }
 
+    // Returns the first item in the list
     @Override
     public T getFirst() {
-        if (size == 0) {
-            throw new IllegalStateException("list is empty");
-        }
-        return get(0);
+        return arr[0];
     }
 
+    // Returns the last item in the list
     @Override
     public T getLast() {
-        if (size == 0) {
-            throw new IllegalStateException("list is empty");
-        }
-        return get(size - 1);
+        return arr[size - 1];
     }
 
+    // Removes the item at the specified index
     @Override
     public void remove(int index) {
-        if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
+        checkIndex(index);
+        for (int i = index; i < size - 1; i++) {
+            arr[i] = arr[i + 1];
         }
-        System.arraycopy(elements, index + 1, elements, index, size - index - 1);
-        elements[--size] = null;
+        size--;
     }
 
+    // Removes the first item in the list
     @Override
     public void removeFirst() {
         remove(0);
     }
 
+    // Removes the last item in the list
     @Override
     public void removeLast() {
         remove(size - 1);
     }
 
+    // Sorts the list using a bubble sort algorithm
     @Override
     public void sort() {
-
-
+        for (int i = 0; i < size - 1; i++){
+            for (int j = 0; j < size - i - 1; j++){
+                if (arr[j].compareTo(arr[j + 1]) > 0){
+                    T temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
     }
 
+    // Returns the index of the first occurrence of the specified object
     @Override
     public int indexOf(Object object) {
         for (int i = 0; i < size; i++) {
-            if (object == null ? elements[i] == null : object.equals(elements[i])) {
+            if (arr[i].equals(object)) {
                 return i;
             }
         }
         return -1;
     }
 
+    // Returns the index of the last occurrence of the specified object
     @Override
     public int lastIndexOf(Object object) {
-        for (int i = size - 1; i >= 0; i--) {
-            if (object == null ? elements[i] == null : object.equals(elements[i])) {
+        for (int i = size - 1; i >= 0; --i) {
+            if (arr[i].equals(object)) {
                 return i;
             }
         }
         return -1;
     }
 
+    // Returns true if the specified object is in the list, and false otherwise
     @Override
     public boolean exists(Object object) {
-        return indexOf(object) != -1;
+        return (indexOf(object) != -1);
     }
 
+    // Returns an array containing all of the items in the list
     @Override
     public Object[] toArray() {
-        return elements;
+        Object[] result = new Object[size];
+        for (int i = 0; i < size; i++) {
+            result[i] = arr[i];
+        }
+        return result;
     }
 
+    // Clears the list, removing all items
     @Override
     public void clear() {
-        for (int i = 0; i < size; i++) {
-            elements[i] = null;
-        }
+        arr = (T[]) new Comparable[5];
         size = 0;
     }
 
+    // Returns the number of items in the list
     @Override
     public int size() {
         return size;
     }
 
-    private void resize() {
-        int newCapacity = elements.length * 2;
-        Object[] newElements = new Object[newCapacity];
-        System.arraycopy(elements, 0, newElements, 0, size);
-        elements = newElements;
-    }
-
+    // Returns an iterator for the list
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private int currentIndex = 0;
+        return new MyArrayListIterator();
+    }
 
-            @Override
-            public boolean hasNext() {
-                return currentIndex < size;
-            }
+    // A private inner class that implements the Iterator interface
+    private class MyArrayListIterator implements Iterator<T> {
+        // The current position of the iterator
+        private int cursor;
 
-            @Override
-            public T next() {
-                if (!hasNext()) {
-                    throw new IndexOutOfBoundsException();
-                }
-                return get(currentIndex++);
-            }
-        };
+        // Constructs a new MyArrayListIterator object
+        MyArrayListIterator(){
+            cursor = 0;
+        }
+
+        // Returns true if there are more items to iterate over, and false otherwise
+        @Override
+        public boolean hasNext() {
+            return (cursor < size);
+        }
+
+        // Returns the next item in the iteration
+        @Override
+        public T next() {
+            if (!hasNext())
+                return null;
+            return arr[cursor++];
+        }
     }
 }
